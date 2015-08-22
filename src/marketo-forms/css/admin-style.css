@@ -1,0 +1,9 @@
+#post .error{
+	color: #ff0000;
+	font-weight: bold;
+	font-style: italic;
+	display: block;
+}
+.setting_cat_row{
+	border-bottom: 1px dotted #232323;
+}
