@@ -63,11 +63,24 @@ License: GPLv2
 		);
 	}
 	
-	
-	
 	function tsn_mkto_check_for_submission(){
-		if(isset($_POST['mkto_form_submit'])){
-			include_once(plugin_dir_path(__FILE__) . "form-handler.php");
+		if(isset($_POST['tsn_mkto_form_submit_nonce'])&& wp_verify_nonce($_POST['tsn_mkto_form_submit_nonce'],'tsn_mkto_form_submit')){
+			$marketo_token = "";
+			$marketo_token = tsn_mkto_get_token();
+			$lead_update = tsn_mkto_update_lead($marketo_token);
+			
+			$leadId="";
+			$post_reg_action=$_POST["tsn_mkto_post_action"];
+			$post_reg_target="";
+
+			if($lead_update->success){
+				$leadId = $lead_update->result[0]->id;	
+				tsn_mkto_assign_associate_lead($leadId,$marketo_token);
+				$campaign_update = tsn_mkto_add_to_campaign($leadId,$marketo_token);
+				wp_redirect($post_reg_action);
+			}else{
+				
+			}
 		}
 	}
 	function tsn_mkto_post_type_setup(){

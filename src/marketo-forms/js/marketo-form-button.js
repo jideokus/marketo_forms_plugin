@@ -16,14 +16,13 @@
 								{type: 'listbox', name: 'form_id', label: 'Select a form',values:marketo_forms},
 								{type:'textbox',name:'cpn_id',label: 'Marketo Campaign ID (Separated by Commas)'},
 								{type:'textbox',name:'heading',label: 'Form heading'},
-								{type:'listbox',name:'target',label: 'Open in New Window?', values:[{'text':'No','value':'no'},{'text':'Yes','value':'yes'}]},
 								{type:'listbox',name:'with_labels',label: 'Show form labels?', values:[{'text':'No','value':'no'},{'text':'Yes','value':'yes'}]},
 								{type:'textbox',name:'post_reg_url',label: 'Post form fill URL'},
 
 								
 							],
 							onsubmit: function(e) {
-								ed.insertContent("[tsn_mkto_form id=\"" + e.data.form_id+ "\" cpnid=\""+e.data.cpn_id+"\" new_window=\""+e.data.target+"\" post_reg=\"" + e.data.post_reg_url +"\" show_labels=\"" + e.data.with_labels + "\" heading=\""+e.data.heading+"\"]");
+								ed.insertContent("[tsn_mkto_form id=\"" + e.data.form_id+ "\" cpnid=\""+e.data.cpn_id+"\" post_reg=\"" + e.data.post_reg_url +"\" show_labels=\"" + e.data.with_labels + "\" heading=\""+e.data.heading+"\"]");
 							}
 						});
                     }

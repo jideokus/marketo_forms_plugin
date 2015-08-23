@@ -161,11 +161,10 @@
 				}
 			
 				$form_display.='<input class="tsn-mkto-form-submit" type="submit" value="'. __($post->submit_text?$post->submit_text:'Submit') .'"/>';
-				$form_display.= wp_nonce_field('tsn_mkto_form_submit_nonce','tsn_mkto_form_submit');
+				$form_display.= wp_nonce_field('tsn_mkto_form_submit','tsn_mkto_form_submit_nonce');
 				$form_display.= '<input type="hidden" name="tsn_mkto_form_id" value="'.$form_id . '"/>';
 				$form_display.='<input type="hidden" name="tsn_mkto_cpnid" value="'.$cpn_id . '"/>';
 				$form_display.='<input type="hidden" name="tsn_mkto_post_action" value="'.$post_reg_action . '"/>';
-				$form_display.='<input type="hidden" name="tsn_mkto_post_target" value="'.$target . '"/>';
 			$form_display.="</form>";
 			
 			$clicked_link="";
@@ -185,8 +184,7 @@
 			echo '<h3>';
 			echo _e('This form does not exist');
 			echo '</h3>';
-		}
-		
+		}	
 	}
 	function tsn_mkto_get_lead_data($fields){
 		
@@ -195,16 +193,18 @@
 		foreach($fields as $field){
 			array_push($field_names,$field["field_name"]);
 		}
-		$marketo_token = get_marketo_token();
+		$marketo_token = tsn_mkto_get_token();
 		$request_action="/v1/leads.json?filterType=cookie&filterValues=" . str_replace("&","%26",$_COOKIE[TSN_MKTO_MUNCHKIN_COOKIE]) . "&fields=" . implode(",",$field_names);
-		$rest_call = generate_call($request_action,$marketo_token,false);
-		$lead_data = make_rest_call($rest_call,null,"get")->result[0];
+		$rest_call = tsn_mkto_generate_call($request_action,$marketo_token,false);
+		$lead_data = tsn_mkto_make_rest_call($rest_call,null,"get")->result[0];
 		
 		if($lead_data){
 			$lead_data = get_object_vars($lead_data);	
 		}
 		return $lead_data;
 	}
+	
+	//If you want to check if this person exists in Marketo, use this function and you're good to go
 	function is_tsn_mkto_form_required($form_id){
 	
 		if(!$form_id)
@@ -220,5 +220,41 @@
 				return true;
 		}
 		return false;
+	}
+	function tsn_mkto_update_lead($marketo_token){
+		$form = get_post($_POST['tsn_mkto_form_id']);
+		$fields = $form->form_field;
+		$fields_to_submit=array();
+		foreach($fields as $field){
+			$field_name = $field["field_name"];
+			$fields_to_submit[$field_name] = $_POST[$field_name];
+		}
+		
+		$request_data["action"] = "createOrUpdate";
+		$request_data["lookupfield"] = get_option('tsn_mkto_setting_lookup_field');
+		$request_data["input"]=array($fields_to_submit);
+		$request_action = "/v1/leads.json";
+	
+		$rest_call = tsn_mkto_generate_call($request_action,$marketo_token);
+		
+		return tsn_mkto_make_rest_call($rest_call,$request_data);
+	}
+	
+	
+	function tsn_mkto_assign_associate_lead($leadId,$marketo_token){
+		$request_action = "/v1/leads/".$leadId."/associate.json";
+		$cookie_id = "&cookie=" . str_replace("&","%26",$_COOKIE["_mkto_trk"]);
+		$rest_call = tsn_mkto_generate_call($request_action,$marketo_token,true,$cookie_id);
+		tsn_mkto_make_rest_call($rest_call);
+		
+	}
+	function tsn_mkto_add_to_campaign($leadId,$marketo_token){
+		$campaignId = $_POST["cpnid"];
+		$request_action =  "/v1/campaigns/".$campaignId ."/trigger.json";
+		$rest_call = tsn_mkto_generate_call($request_action,$marketo_token);
+		
+		$request_data = array('input'=>array('leads'=>array(array("id"=>$leadId))));
+
+		return tsn_mkto_make_rest_call($rest_call,$request_data);
 	}
 ?>
