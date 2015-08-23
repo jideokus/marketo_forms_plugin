@@ -10,20 +10,22 @@ License: GPLv2
 */
 	if(is_admin()){
 		include( plugin_dir_path( __FILE__ ) . 'options.php');
-		include_once(plugin_dir_path(__FILE__) . 'form-actions.php');
+		
 	}
 	add_action( 'init', 'tsn_mkto_create_post_type' );
+	add_action('init', 'tsn_mkto_add_actions');
 	add_action('admin_init', 'tsn_mkto_post_type_setup');
 	
 	
 	add_action('admin_enqueue_scripts','tsn_mkto_load_admin_scripts');
 	add_action('save_post', 'tsn_mkto_save_form'); 
-	add_shortcode('mkto_form','form_shortcode_handler');
-	add_action('template_redirect', 'check_for_form_submission');
-	add_action('wp_head', 'load_validation_script');
+	add_shortcode('mkto_form','tsn_mkto_shortcode_handler');
+	add_action('template_redirect', 'tsn_mkto_check_for_submission');
 	add_action( 'admin_init', 'tsn_mkto_add_editor_button' );
 	
-	
+	function tsn_mkto_add_actions(){
+		include_once(plugin_dir_path(__FILE__) . 'form-actions.php');
+	}
 	function tsn_mkto_load_admin_styles(){
 		wp_enqueue_style('market-form-admin-css',plugins_url( 'css/admin-style.css', __FILE__ ));
 	}
@@ -62,7 +64,7 @@ License: GPLv2
 	
 	
 	
-	function check_for_form_submission(){
+	function tsn_mkto_check_for_submission(){
 		if(isset($_POST['mkto_form_submit'])){
 			include_once(plugin_dir_path(__FILE__) . "form-handler.php");
 		}
@@ -138,119 +140,13 @@ License: GPLv2
 	}
 	
 	
-	function get_marketo_form_fields($form_id){
+	function tsn_mkto_get_form_fields($form_id){
 		$post = get_post($form_id);
 		return $post->form_field;
 	}
-	function show_marketo_form($form_id,$cpn_id,$post_reg_action="",$post_reg_data="",$target="",$form_title="",$popup=false,$button_text="",$popup_id="mkto_form_popup",$lead_text="",$btn_style="small_red"){
-		global  $post, $wp_query;
-		$post = get_post($form_id);
-		$form_display = "";		
-		$button_id = $popup_id.'_btn';
-		
-		if (isset($post)){
-						
-			$fields = $post->form_field;
-			if($_COOKIE["_mkto_trk"])
-				$lead_data=get_lead_data($fields);
-			if($popup){
-				if($btn_style=='small_red')
-					$form_display.=sprintf('<input class="wpcf7-form-control wpcf7-submit itc-download-button" type="submit" data-toggle="modal" data-target="#%s" value="%s"/>',$popup_id,$button_text);
-				else if ($btn_style=='long_cta'){
-					$form_display.='<div class="spb_impact_text spb_content_element clearfix col-sm-12 cta_align_right itc-no-padding">';
-							$form_display.='<div class="impact-text-wrap clearfix">';
-								$form_display.='<div class="spb_call_text">';
-									$form_display.='<p>'.$lead_text.'</p>';
-								$form_display.='</div>';
-								$form_display.=sprintf('<input class="sf-button sf-button accent " type="submit" data-toggle="modal" data-target="#%s" value="%s"/>',$popup_id,$button_text);
-							$form_display.='</div>';
-					$form_display.='</div>';
-				}
-							
-				$form_display.='<div id="'.$popup_id.'" tabindex="-1" class="modal fade">
-									<div class="modal-dialog" role="document">
-										<div class="modal-content">';
-											$form_display.='<div class="modal-header">';
-												$form_display.='<button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="ss-delete"></i></button>';
-													if($form_title)
-														$form_display.='<h3 id="modal-label">'.$form_title.'</h3>';		
-											$form_display.='</div>';
-											$form_display.='<div class="modal-body">';
-			}
-			
-												//This is where the form begins
-												$form_display.= '<form class = "wpcf7-form" method="POST" action="#">';
-													if(!$popup & $form_title)
-														$form_display.='<h3>'.$form_title.'</h3>';
-													foreach($fields as $field){
-														if($lead_data)
-															$form_display.=show_field($field,$lead_data[$field["field_name"]]);
-														else
-															$form_display.=show_field($field);
-													}
-												
-													$form_display.='<input class="wpcf7-form-control wpcf7-submit" id="'.$button_id.'" type="submit" value="'. __($post->submit_text,"swift-framework-admin") .'"/>';
-													$form_display.= wp_nonce_field('marketo_form_sbumit','mkto_form_submit');
-													$form_display.= '<input type="hidden" name="mkto_form_id" value="'.$form_id . '"/>';
-													$form_display.='<input type="hidden" name="cpnid" value="'.$cpn_id . '"/>';
-													$form_display.='<input type="hidden" name="post_reg_action" value="'.$post_reg_action . '"/>';
-													$form_display.='<input type="hidden" name="post_reg_data" value="'.$post_reg_data . '"/>';
-													$form_display.='<input type="hidden" name="post_reg_target" value="'.$target . '"/>';
-												$form_display.="</form>";
-											
-			if($popup){
-										$form_display.='</div>
-									</div>
-								</div>
-							</div>';
-			}
-			$clicked_link="";
-			if($post_reg_action=='wp_download'){
-				$clicked_link=get_post($post_reg_data)->whitepaper_file;
-			}else if ($post_reg_action=='webcast_presentation_download'){
-				$clicked_link = get_post($post_reg_data)->webcast_presentation;
-			}else if ($post_reg_action=='webcast_webcast_download'){
-				$clicked_link = get_post($post_reg_data)->webcast_recording;
-			}
-				
-				
-			$form_display.='<script>
-								jQuery(document).ready(function(){
-									jQuery("#'.$button_id.'").click(function(){
-										Munchkin.munchkinFunction("clickLink", { href: "'. $clicked_link.'" }); 
-									});
-									
-								});
-							</script>';
-			return $form_display;
-		}
-		
-	}
-	function get_marketo_forms($field_name,$field_value=null){
-		$forms = get_posts(array('post_type'=>'marketo_form'));
-		$forms_field = "";
-		$forms_field.='<select name="'.$field_name.'">';
-		$forms_field.='<option value="">Select a form</option>';
-		
-		$value="";
-		if($field_value){
-			$value = $field_value;
-		}else{
-			$value = get_option($field_name);
-		}
-		$selected = "";
-		foreach($forms as $form){
-			$selected="";
-			if($form->ID==$value){
-				$selected = " selected";
-			}
-			$forms_field.='<option value="'.$form->ID.'"'. $selected.'>'.$form->post_title.'</option>';
-			
-		}
-		$forms_field.="</select>";
-		return $forms_field;
-	}
-	function form_shortcode_handler($atts){
+	
+	
+	function tsn_mkto_shortcode_handler($atts){
 		$post_reg_action="";
 		$post_reg_data="";
 		$form_title=$atts['heading'];
@@ -270,91 +166,14 @@ License: GPLv2
 			$popup_id="mkto_form_popup";
 			$btn_style=$atts['style'];
 			$target="";
-			return show_marketo_form($atts['id'],$atts["cpnid"],$post_reg_action,$post_reg_data,$target,$form_title,$popup,$btn_text,$popup_id,$lead_text,$btn_style);
+			return tsn_mkto_show_form($atts['id'],$atts["cpnid"],$post_reg_action,$post_reg_data,$target,$form_title,$popup,$btn_text,$popup_id,$lead_text,$btn_style);
 		}
 		
-		return show_marketo_form($atts["id"],$atts["cpnid"],$post_reg_action,$post_reg_data,$target,$form_title);
+		return tsn_mkto_show_form($atts["id"],$atts["cpnid"],$post_reg_action,$post_reg_data,$target,$form_title);
 	}
-	function is_marketo_form_required($form_id){
 	
-		if(!$form_id)
-			return false;
-		$fields=get_marketo_form_fields($form_id);
-		$lead_data=get_lead_data($fields);
-		if(!$lead_data){
-			return true;
-		}
-		
-		foreach($fields as $field){
-			if($field=="")
-				return true;
-		}
-		return false;
-	}
-	function get_lead_data($fields){
-		
-		$field_names = $lead_data = array();
 	
-		foreach($fields as $field){
-			array_push($field_names,$field["field_name"]);
-		}
-		$marketo_token = get_marketo_token();
-		$request_action="/v1/leads.json?filterType=cookie&filterValues=" . str_replace("&","%26",$_COOKIE["_mkto_trk"]) . "&fields=" . implode(",",$field_names);
-		$rest_call = generate_call($request_action,$marketo_token,false);
-		$lead_data = make_rest_call($rest_call,null,"get")->result[0];
-		
-		if($lead_data){
-			$lead_data = get_object_vars($lead_data);	
-		}
-		return $lead_data;
-	}
-	function show_field($field,$value=""){
-		
-		
-		$field_element = '<div class="wpcf7-form-control-wrap">';
-		$field_element.= '<label for="'.$field["field_name"].'">'.$field["field_label"].'</label>';
-		$options_list = explode(",",$field["field_options"]);
-		$validation = $field["field_validation"];
-		$add_number_rule = false;
-		$option_status ="";
-		if($field["field_type"]=="radio" || $field["field_type"]=="checkbox")
-			$option_status="checked";
-		else if($field["field_type"]=="dropdown")
-			$option_status="selected";
-			
-		switch ($field["field_type"]){
-			case "text":
-				$field_element.= '<input type="' . $field["field_validation"] .'" class="wpcf7-form-control wpcf7-text" name="' . $field["field_name"] . '" '. $field["field_required"] . ' value="'.$value.'"/>';
-				break;
-			case "text-area":
-				$field_element.= '<textarea class="class="wpcf7-form-control wpcf7-textarea" name="' . $field["field_name"] . '" '.$field["field_required"].'>'.$value.'</textarea>';
-				break;
-			case "dropdown":
-				$field_element.= '<select name="'. $field["field_name"] . '">';
-				foreach($options_list as $option){
-						$field_element.='<option value="'. $option .'" ';
-						if($value==$option)
-							$field_element.=$option_status;
-						$field_element.='>' . $option .'</option>';
-				}	
-				$field_element.= '</select>';
-				break;
-			case "radio":
-				foreach($options_list as $option){
-					$field_element .='<span><input value='.$option.' type="radio" name="'.$field["field_name"] .'" '.$option_status .'/>'.$option.'</span>';
-				}
-			case "checkbox":
-				if(count($options_list)>0){
-					foreach($options_list as $option){
-						$field_element .='<span><input value='.$option.' type="checkbox" name="'.$field["field_name"] .'[]" '.$option_status.'/>'.$option.'</span>';
-					}
-				}else{
-					$field_element.='<input value='.$option.' type="checkbox" name="'.$field["field_name"] . '[]" '.$option_status.'/>';
-				}
-		}
-		$field_element.="</div>";
-		return $field_element;
-	}
+	
 	
 	
 	
@@ -374,7 +193,7 @@ License: GPLv2
 	}
 	function tsn_mkto_button_head() {
 		$plugin_url = plugins_url( '/', __FILE__ );
-		$forms = get_posts(array('post_type'=>'marketo_form','post_status'=>'publish'));
+		$forms = get_posts(array('post_type'=>'tsn_mkto_form','post_status'=>'publish'));
 		$forms_for_button=[];
 		foreach($forms as $post){
 			$text = $post->post_title;
@@ -390,7 +209,7 @@ License: GPLv2
 	}
 		
 	function tsn_mkto_add_button_script( $plugin_array ) {
-		 $plugin_array['marketo_form_script'] = plugins_url( 'js/marketo-form-button.js', __FILE__ ) ;
+		 $plugin_array['tsn_mkto_button_script'] = plugins_url( 'js/marketo-form-button.js', __FILE__ ) ;
 		 return $plugin_array;
 	}
 ?>

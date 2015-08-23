@@ -1,12 +1,12 @@
 (function() {
      /* Register the buttons */
 
-     tinymce.create('tinymce.plugins.MarketoForms', {
+     tinymce.create('tinymce.plugins.TSNMarketoForms', {
           init : function(ed, url) {
                /**
                * Inserts shortcode content
                */
-               ed.addButton( '-marketo-form', {
+               ed.addButton( '-tsn-mkto-form', {
                     title : 'Insert Marketo Form',
                     image : marketo_form_plugin_url+'images/button-icon.png',
                     onclick : function() {
@@ -24,7 +24,7 @@
 								
 							],
 							onsubmit: function(e) {
-								// Insert content when the window form is submitted
+								
 								var popup_meta = '';
 								if(e.data.popup=='yes'){
 									popup_meta+=" lead_text=\""+e.data.lead_text+"\"";
@@ -42,6 +42,6 @@
                return null;
           },
      });
-     /* Start the buttons */
-     tinymce.PluginManager.add( 'marketo_form_script', tinymce.plugins.MarketoForms );
+     
+     tinymce.PluginManager.add( 'tsn_mkto_button_script', tinymce.plugins.TSNMarketoForms );
 })();
