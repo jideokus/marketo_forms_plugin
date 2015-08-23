@@ -6,4 +6,9 @@
 }
 .setting_cat_row{
 	border-bottom: 1px dotted #232323;
+
+}
+h3.tsn-mkto-admin-error{
+	font-weight: bold;
+	color: #ff0000;
 }

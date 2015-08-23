@@ -1,6 +1,6 @@
 var fieldCount =0;
 
-function marketo_form_add_field(field){
+function tsn_mkto_add_field(field){
 	
 	var field_name_value = "";
 	var field_label_value = "";
@@ -23,8 +23,20 @@ function marketo_form_add_field(field){
 	var validation_name = 'form_field[' + fieldCount +'][field_validation]';
 	var required_name = 'form_field[' + fieldCount +'][field_required]';
 	var newField = '<div><h3>Field<table></h3>';
-	var newField=newField+ '<tr><td><strong><label>Marketo Field Name</strong></label></td><td><input name="' + field_name +'"'+
-					'value="'+ field_name_value + '" type="text" required/></td></tr>';
+	var newField=newField+ '<tr><td><strong><label>Marketo Field Name</strong></label></td>';
+	var selected = "";
+	newField+='<td>'+
+					'<select name="'+field_name+'">';
+					jQuery.each(tsn_mkto_all_fields,function(value,title){
+						if(value==field_name_value){
+							selected="selected";
+						}else{
+							selected="";
+						}
+						newField+='<option value="'+value+'" ' + selected+'>'+title+'</option>';
+					});
+						
+	newField+='</select></td></tr>';
 	newField=newField+ '<tr><td><strong><label>Field Label</strong></label></td><td><input name="' + label_name + '" type="text" '+
 					'value="'+ field_label_value + '" required/></td></tr>';
 	newField=newField+ '<tr><td><strong><label>Type</strong></label></td><td><select name="'+type_name+'">';
@@ -73,7 +85,7 @@ function marketo_form_add_field(field){
 	
 	newField=newField+  '</table></div>';
 	var remove_button = '<button type="button" class="button-primary" style="background:#ff0000;border:1px solid #ed1c24;margin-bottom:10px;">Remove</button>';
-	jQuery("#marketo-form-fields").append(newField);
+	jQuery("#tsn-mkto-form-fields").append(newField);
 	var newFieldDiv = jQuery("#marketo-form-fields").children().last();
 	newFieldDiv.append(remove_button);
 	newFieldDiv.children().last().click(function(){
