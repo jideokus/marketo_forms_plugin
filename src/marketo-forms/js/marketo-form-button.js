@@ -14,24 +14,16 @@
 							title: 'Configure a Marketo form',
 							body: [
 								{type: 'listbox', name: 'form_id', label: 'Select a form',values:marketo_forms},
-								{type:'textbox',name:'cpn_id',label: 'Marketo Campaign ID'},
+								{type:'textbox',name:'cpn_id',label: 'Marketo Campaign ID (Separated by Commas)'},
 								{type:'textbox',name:'heading',label: 'Form heading'},
-								{type:'listbox',name:'popup',label: 'With popup?', values:[{'text':'No','value':'no'},{'text':'Yes','value':'yes'}]},
-								{type:'textbox',name:'btn_text',label: 'Enter the button_text[For popup only]'},
-								{type:'textbox',name:'lead_text',label: 'Enter the leading text [For popup and Long CTA style only]'},
-								
-								{type:'listbox',name:'style',label: 'Select the style [For popup only]', values:[{'text':'Small Red','value':'small_red'},{'text':'Long CTA','value':'long_cta'}]},
+								{type:'listbox',name:'target',label: 'Open in New Window?', values:[{'text':'No','value':'no'},{'text':'Yes','value':'yes'}]},
+								{type:'listbox',name:'with_labels',label: 'Show form labels?', values:[{'text':'No','value':'no'},{'text':'Yes','value':'yes'}]},
+								{type:'textbox',name:'post_reg_url',label: 'Post form fill URL'},
+
 								
 							],
 							onsubmit: function(e) {
-								
-								var popup_meta = '';
-								if(e.data.popup=='yes'){
-									popup_meta+=" lead_text=\""+e.data.lead_text+"\"";
-									popup_meta+=" btn_text=\""+e.data.btn_text+"\"";
-									popup_meta+=" style=\""+e.data.style+"\"";
-								}
-								ed.insertContent("[mkto_form id=\"" + e.data.form_id+ "\" cpnid=\""+e.data.cpn_id+"\" heading=\""+e.data.heading+"\" popup=\"" + e.data.popup+"\""+popup_meta +"]");
+								ed.insertContent("[tsn_mkto_form id=\"" + e.data.form_id+ "\" cpnid=\""+e.data.cpn_id+"\" new_window=\""+e.data.target+"\" post_reg=\"" + e.data.post_reg_url +"\" show_labels=\"" + e.data.with_labels + "\" heading=\""+e.data.heading+"\"]");
 							}
 						});
                     }

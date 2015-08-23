@@ -13,18 +13,19 @@ License: GPLv2
 		
 	}
 	add_action( 'init', 'tsn_mkto_create_post_type' );
-	add_action('init', 'tsn_mkto_add_actions');
+	add_action('init', 'tsn_mkto_includes');
 	add_action('admin_init', 'tsn_mkto_post_type_setup');
 	
 	
 	add_action('admin_enqueue_scripts','tsn_mkto_load_admin_scripts');
 	add_action('save_post', 'tsn_mkto_save_form'); 
-	add_shortcode('mkto_form','tsn_mkto_shortcode_handler');
+	add_shortcode('tsn_mkto_form','tsn_mkto_shortcode_handler');
 	add_action('template_redirect', 'tsn_mkto_check_for_submission');
 	add_action( 'admin_init', 'tsn_mkto_add_editor_button' );
 	
-	function tsn_mkto_add_actions(){
+	function tsn_mkto_includes(){
 		include_once(plugin_dir_path(__FILE__) . 'form-actions.php');
+		include_once(plugin_dir_path(__FILE__) . 'constants.php');
 	}
 	function tsn_mkto_load_admin_styles(){
 		wp_enqueue_style('market-form-admin-css',plugins_url( 'css/admin-style.css', __FILE__ ));
@@ -79,12 +80,18 @@ License: GPLv2
 		$fields = unserialize($custom["form_field"][0]);
 		include_once(plugin_dir_path(__FILE__) . "form-actions.php");
 		$all_fields = tsn_mkto_get_fields();
+		
 		if($all_fields):
 			$all_fields = json_encode($all_fields);
 			
 		?>
 			<script type="text/javascript">
-				var tsn_mkto_all_fields = <?php echo $all_fields?>
+				var tsn_mkto_all_fields = <?php echo $all_fields?>;
+				var TSN_MKTO_FIELD_TEXT = "<?php echo TSN_MKTO_FIELD_TEXT?>";
+				var TSN_MKTO_FIELD_TEXTAREA = "<?php echo TSN_MKTO_FIELD_TEXTAREA?>";
+				var TSN_MKTO_FIELD_RADIO = "<?php echo TSN_MKTO_FIELD_RADIO?>";
+				var TSN_MKTO_FIELD_CHECKBOX = "<?php echo TSN_MKTO_FIELD_CHECKBOX?>";
+				var TSN_MKTO_FIELD_DROPDOWN = "<?php echo TSN_MKTO_FIELD_DROPDOWN?>";
 			</script>
 			<div>
 				<div id="tsn-mkto-form-fields"></div>
@@ -147,35 +154,20 @@ License: GPLv2
 	
 	
 	function tsn_mkto_shortcode_handler($atts){
-		$post_reg_action="";
-		$post_reg_data="";
 		$form_title=$atts['heading'];
-		$popup=false;
-		$btn_text=$atts['btn_text'];
-		$lead_text=$atts['lead_text'];
-		$popup_id="mkto_form_popup";
-		$btn_style=$atts['style'];
-		$target="";
-		if($atts['popup']=='yes'){
-			$post_reg_action="";
-			$post_reg_data="";
-			$form_title=$atts['heading'];
-			$popup=true;
-			$btn_text=$atts['btn_text'];
-			$lead_text=$atts['lead_text'];
-			$popup_id="mkto_form_popup";
-			$btn_style=$atts['style'];
-			$target="";
-			return tsn_mkto_show_form($atts['id'],$atts["cpnid"],$post_reg_action,$post_reg_data,$target,$form_title,$popup,$btn_text,$popup_id,$lead_text,$btn_style);
+		$post_reg_url = $atts['post_reg'];
+		$target=$atts['new_window'];
+		if($atts['show_labels']=='yes'){
+			$show_labels = true;
+		}else{
+			$show_labels=false;
 		}
 		
-		return tsn_mkto_show_form($atts["id"],$atts["cpnid"],$post_reg_action,$post_reg_data,$target,$form_title);
+		$campaign_id=$atts['cpnid'];
+		$form_id=$atts['id'];		
+		return tsn_mkto_show_form($atts["id"],$atts["cpnid"],$form_title,$post_reg_url,$target,$show_labels);
 	}
-	
-	
-	
-	
-	
+		
 	
 	/**Functions for adding the editor button**/
 	function tsn_mkto_add_editor_button() {

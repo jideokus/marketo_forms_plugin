@@ -40,25 +40,25 @@ function tsn_mkto_add_field(field){
 	newField=newField+ '<tr><td><strong><label>Field Label</strong></label></td><td><input name="' + label_name + '" type="text" '+
 					'value="'+ field_label_value + '" required/></td></tr>';
 	newField=newField+ '<tr><td><strong><label>Type</strong></label></td><td><select name="'+type_name+'">';
-	newField=newField+  '<option value="text" ';
-							if(field_type_value =="text")
+	newField=newField+  '<option value="'+TSN_MKTO_FIELD_TEXT+'" ';
+							if(field_type_value ==TSN_MKTO_FIELD_TEXT)
 								newField+= "selected";
 	newField=newField+ '>Text</option>';
-	newField=newField+  '<option value = "text-area" ';
-							if(field_type_value =="text-area")
+	newField=newField+ '<option value="'+TSN_MKTO_FIELD_TEXTAREA+'" ';
+							if(field_type_value ==TSN_MKTO_FIELD_TEXTAREA)
 								newField+= "selected";
 	newField=newField+ '>Text Area</option>';
-		newField=newField+  '<option value = "dropdown" ';
-							if(field_type_value =="dropdown")
+		newField=newField+  '<option value="'+TSN_MKTO_FIELD_DROPDOWN+'" ';
+							if(field_type_value ==TSN_MKTO_FIELD_DROPDOWN)
 								newField+= "selected";
 	newField=newField+ '>Dropdown</option>';
 	
-	newField=newField+  '<option value = "radio" ';
-							if(field_type_value =="radio")
+	newField=newField+  '<option value="'+TSN_MKTO_FIELD_RADIO+'" ';
+							if(field_type_value ==TSN_MKTO_FIELD_RADIO)
 								newField+= "selected";
 	newField=newField+ '>Radio Button</option>';
-	newField=newField+  '<option value = "checkbox" ';
-							if(field_type_value =="checkbox")
+	newField=newField+  '<option value="'+TSN_MKTO_FIELD_CHECKBOX+'" ';
+							if(field_type_value ==TSN_MKTO_FIELD_CHECKBOX)
 								newField+= "selected";
 	newField=newField+ '>Checkbox</option>';
 	newField=newField+  '</select></td></tr>';
@@ -84,9 +84,9 @@ function tsn_mkto_add_field(field){
 			newField=newField+'/></td></tr>';
 	
 	newField=newField+  '</table></div>';
-	var remove_button = '<button type="button" class="button-primary" style="background:#ff0000;border:1px solid #ed1c24;margin-bottom:10px;">Remove</button>';
+	var remove_button = '<button type="button" class="button-primary tsn-mkto-field-remove-button">Remove</button>';
 	jQuery("#tsn-mkto-form-fields").append(newField);
-	var newFieldDiv = jQuery("#marketo-form-fields").children().last();
+	var newFieldDiv = jQuery("#tsn-mkto-form-fields").children().last();
 	newFieldDiv.append(remove_button);
 	newFieldDiv.children().last().click(function(){
 		jQuery(this).parent().remove();

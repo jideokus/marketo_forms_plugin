@@ -12,3 +12,8 @@ h3.tsn-mkto-admin-error{
 	font-weight: bold;
 	color: #ff0000;
 }
+button.tsn-mkto-field-remove-button{
+	background:#ff0000!important;
+	border:1px solid #ed1c24!important;
+	margin-bottom:10px!important;
+}

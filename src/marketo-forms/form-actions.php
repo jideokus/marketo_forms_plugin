@@ -50,29 +50,41 @@
 			return $data_to_return;
 		}
 	}
-	function tsn_mkto_show_field($field,$value=""){
-		
+	function tsn_mkto_show_field($field,$value="",$show_label){
 		
 		$field_element = '<div class="tsn-mkto-form-field">';
-		$field_element.= '<label for="'.$field["field_name"].'">'.$field["field_label"].'</label>';
+		if($show_label){
+			$field_element.= '<label for="'.$field["field_name"].'">'.$field["field_label"].'</label>';
+		}
 		$options_list = explode(",",$field["field_options"]);
 		$validation = $field["field_validation"];
 		$add_number_rule = false;
 		$option_status ="";
-		if($field["field_type"]=="radio" || $field["field_type"]=="checkbox")
+		if($field["field_type"]==TSN_MKTO_FIELD_RADIO || $field["field_type"]==TSN_MKTO_FIELD_CHECKBOX)
 			$option_status="checked";
-		else if($field["field_type"]=="dropdown")
+		else if($field["field_type"]==TSN_MKTO_FIELD_DROPDOWN)
 			$option_status="selected";
 			
 		switch ($field["field_type"]){
-			case "text":
-				$field_element.= '<input type="' . $field["field_validation"] .'" name="' . $field["field_name"] . '" '. $field["field_required"] . ' value="'.$value.'"/>';
+			case TSN_MKTO_FIELD_TEXT:
+				if(!$show_label){
+					$no_label_text = ' placeholder="'.$field['field_label'] .'"';
+				}
+				$field_element.= '<input type="' . $field["field_validation"] .'" name="' . $field["field_name"] . '" '. $field["field_required"] . ' value="'.$value.'" '
+									.$no_label_text .'/>';
 				break;
-			case "text-area":
-				$field_element.= '<textarea name="' . $field["field_name"] . '" '.$field["field_required"].'>'.$value.'</textarea>';
+			case TSN_MKTO_FIELD_TEXTAREA:
+				if(!$show_label){
+					$no_label_text = ' placeholder="'.$field['field_label'] .'"';
+				}
+				$field_element.= '<textarea name="' . $field["field_name"] . '" '.$field["field_required"]. $no_label_text.'>'.$value.'</textarea>';
 				break;
-			case "dropdown":
+			case TSN_MKTO_FIELD_DROPDOWN:
+				
 				$field_element.= '<select name="'. $field["field_name"] . '">';
+				if(!$show_label){
+					$field_element.= '<option value="" disabled selected>'.$field['field_label'] .'</option>';
+				}
 				foreach($options_list as $option){
 						$field_element.='<option value="'. $option .'" ';
 						if($value==$option)
@@ -81,11 +93,11 @@
 				}	
 				$field_element.= '</select>';
 				break;
-			case "radio":
+			case TSN_MKTO_FIELD_RADIO:
 				foreach($options_list as $option){
 					$field_element .='<span><input value='.$option.' type="radio" name="'.$field["field_name"] .'" '.$option_status .'/>'.$option.'</span>';
 				}
-			case "checkbox":
+			case TSN_MKTO_FIELD_CHECKBOX:
 				if(count($options_list)>0){
 					foreach($options_list as $option){
 						$field_element .='<span><input value='.$option.' type="checkbox" name="'.$field["field_name"] .'[]" '.$option_status.'/>'.$option.'</span>';
@@ -123,38 +135,37 @@
 		return $forms_field;
 	}
 	
-	function tsn_mkto_show_form($form_id,$cpn_id,$post_reg_action="",$post_reg_data="",$target="",$form_title=""){
-		global  $post, $wp_query;
+	function tsn_mkto_show_form($form_id,$cpn_id,$form_title="",$post_reg_action="",$target="",$show_labels=true){
+		
 		$post = get_post($form_id);
 		$form_display = "";		
-		$button_id = $popup_id.'_btn';
+		
 		if($button_text==""){
 			$button_text='Submit';
 		}
-		if (isset($post)){
+		if ($post && $post->post_type=='tsn_mkto_form'){
 						
 			$fields = $post->form_field;
-			if($_COOKIE["_mkto_trk"]){
+			if($_COOKIE[TSN_MKTO_MUNCHKIN_COOKIE]){
 				$lead_data=get_lead_data($fields);
 			}
 								
-			$form_display.= '<form class = "wpcf7-form" method="POST" action="#">';
+			$form_display.= '<form class = "tsn_mkto_form" method="POST" action="#">';
 				if(!$popup & $form_title)
 					$form_display.='<h3>'.$form_title.'</h3>';
 				foreach($fields as $field){
 					if($lead_data)
-						$form_display.=tsn_mkto_show_field($field,$lead_data[$field["field_name"]]);
+						$form_display.=tsn_mkto_show_field($field,$lead_data[$field["field_name"]],$show_labels);
 					else
-						$form_display.=tsn_mkto_show_field($field);
+						$form_display.=tsn_mkto_show_field($field,"",$show_labels);
 				}
 			
-				$form_display.='<input class="wpcf7-form-control wpcf7-submit" id="'.$button_id.'" type="submit" value="'. __($post->submit_text?$post->submit_text:'Submit') .'"/>';
-				$form_display.= wp_nonce_field('marketo_form_sbumit','mkto_form_submit');
-				$form_display.= '<input type="hidden" name="mkto_form_id" value="'.$form_id . '"/>';
-				$form_display.='<input type="hidden" name="cpnid" value="'.$cpn_id . '"/>';
-				$form_display.='<input type="hidden" name="post_reg_action" value="'.$post_reg_action . '"/>';
-				$form_display.='<input type="hidden" name="post_reg_data" value="'.$post_reg_data . '"/>';
-				$form_display.='<input type="hidden" name="post_reg_target" value="'.$target . '"/>';
+				$form_display.='<input class="tsn-mkto-form-submit" type="submit" value="'. __($post->submit_text?$post->submit_text:'Submit') .'"/>';
+				$form_display.= wp_nonce_field('tsn_mkto_form_submit_nonce','tsn_mkto_form_submit');
+				$form_display.= '<input type="hidden" name="tsn_mkto_form_id" value="'.$form_id . '"/>';
+				$form_display.='<input type="hidden" name="tsn_mkto_cpnid" value="'.$cpn_id . '"/>';
+				$form_display.='<input type="hidden" name="tsn_mkto_post_action" value="'.$post_reg_action . '"/>';
+				$form_display.='<input type="hidden" name="tsn_mkto_post_target" value="'.$target . '"/>';
 			$form_display.="</form>";
 			
 			$clicked_link="";
@@ -170,6 +181,10 @@
 								});
 							</script>';
 			return $form_display;
+		}else{
+			echo '<h3>';
+			echo _e('This form does not exist');
+			echo '</h3>';
 		}
 		
 	}
@@ -181,7 +196,7 @@
 			array_push($field_names,$field["field_name"]);
 		}
 		$marketo_token = get_marketo_token();
-		$request_action="/v1/leads.json?filterType=cookie&filterValues=" . str_replace("&","%26",$_COOKIE["_mkto_trk"]) . "&fields=" . implode(",",$field_names);
+		$request_action="/v1/leads.json?filterType=cookie&filterValues=" . str_replace("&","%26",$_COOKIE[TSN_MKTO_MUNCHKIN_COOKIE]) . "&fields=" . implode(",",$field_names);
 		$rest_call = generate_call($request_action,$marketo_token,false);
 		$lead_data = make_rest_call($rest_call,null,"get")->result[0];
 		
