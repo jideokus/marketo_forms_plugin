@@ -1,6 +1,6 @@
 <?php
 /*
-Plugin Name: Marketo Forms for WP
+Plugin Name: TSN Marketo Forms for WP
 Description: Howdy there. This right here is a fabulous plugin to integrate Marketo into your WordPress site. Build your form straight from WordPress, style it and trigger a campaign. Simple and easy to use. If you got any feedback on it, let me know; if not Keep calm and enjoy :)
 Version: 1.0
 Author: Jide Okusanya
